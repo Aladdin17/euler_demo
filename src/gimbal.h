@@ -40,7 +40,6 @@ typedef struct Gimbal
 	enum Axis activeAxis;
 } Gimbal;
 
-
 void drawGimbal(Gimbal* gimbal);
 
 #ifdef __cplusplus

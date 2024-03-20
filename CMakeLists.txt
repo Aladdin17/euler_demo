@@ -1,7 +1,7 @@
 cmake_minimum_required( VERSION 3.8 )
 project(
 	euler_demo
-	LANGUAGES C
+	LANGUAGES C CXX
 )
 
 set( CMAKE_POLICY_DEFAULT_CMP0076 NEW )
@@ -10,24 +10,21 @@ set( CMAKE_POLICY_DEFAULT_CMP0076 NEW )
 set( BIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin/$<CONFIG>" )
 
 # set the freeglut directories
-if( NOT DEFINED FREEGLUT_INC_DIR )
-	set( FREEGLUT_INC_DIR "${CMAKE_SOURCE_DIR}/freeglut/include" CACHE STRING "Path to FreeGLUT headers." )
-endif()
-if( NOT DEFINED FREEGLUT_LIB_DIR )
-	set( FREEGLUT_LIB_DIR "${CMAKE_SOURCE_DIR}/freeglut/lib" CACHE STRING "Path to FreeGLUT precompiled libs." )
-endif()
+set( FREEGLUT_INC_DIR "${CMAKE_SOURCE_DIR}/freeglut/include" )
+set( FREEGLUT_LIB_DIR "${CMAKE_SOURCE_DIR}/freeglut/lib" )
+set( IMGUI_DIR "${CMAKE_SOURCE_DIR}/imgui" )
 
 # add executable target
-add_executable( ${PROJECT_NAME} )
+add_executable( euler-demo )
 set_target_properties(
-	${PROJECT_NAME} PROPERTIES
+	euler-demo PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY "${BIN_DIR}"
 	# set the working directory to the binary directory
 	VS_DEBUGGER_WORKING_DIRECTORY "${BIN_DIR}"
 )
 
 target_compile_options(
-	${PROJECT_NAME}
+	euler-demo
 	PRIVATE
 		$<$<CXX_COMPILER_ID:GNU>: -Wall -Wextra -Wpedantic>	# set gcc compiler warnings
 		$<$<CXX_COMPILER_ID:GNU>: -std=c11> # set c11 standard
@@ -38,43 +35,59 @@ target_compile_options(
 		$<$<CXX_COMPILER_ID:MSVC>: /external:anglebrackets /external:W0> # disable warnings from external headers
 )
 
-# find and link the FreeGLUT library
-set( OpenGL_GL_PREFERENCE "LEGACY" )
-find_package( FreeGLUT QUIET )
-if( FreeGLUT_FOUND )
-	message( STATUS "Linking FreeGLUT." )
-	target_link_libraries( ${PROJECT_NAME} glut GLU GL )
+option( BUILD_GUI_EXT "Build the GUI extension" ON )
+if( BUILD_GUI_EXT )
+	target_compile_definitions(
+		euler-demo
+		PRIVATE BUILD_GUI_EXT
+	)
+	set_target_properties(
+		euler-demo
+		PROPERTIES
+			OUTPUT_NAME "euler-demo-gui"
+	)
+
+	add_library(
+		gui-extension
+		STATIC
+	)
+
+	target_compile_definitions(
+		gui-extension
+		PRIVATE
+			FREEGLUT
+	)
+
+	# add imgui library and link
+	add_subdirectory( ${IMGUI_DIR} )
+	target_link_libraries( gui-extension PRIVATE imgui )
+
+	# add freeglut library and link
+	target_link_directories( gui-extension PUBLIC ${FREEGLUT_LIB_DIR} )
+	target_include_directories( gui-extension PUBLIC ${FREEGLUT_INC_DIR} )
+	target_link_libraries( gui-extension PUBLIC freeglut.lib glu32.lib opengl32.lib )
+
+	# add gimbal header and extension source
+	target_include_directories( gui-extension PRIVATE ${CMAKE_SOURCE_DIR}/src )
+	add_subdirectory( gui-src )
+
+	# link the gui-extension library to the euler-demo executable
+	target_link_libraries( euler-demo PRIVATE gui-extension )
 else()
-	# termintate the build if FreeGLUT is not found and we are not on Windows
-	# the libraries have not been provided for other platforms
-	if( NOT WIN32 )
-		message ( FATAL_ERROR "FreeGLUT not found: Please install from your package manager. " )
-	endif()
+	# find and link the FreeGLUT library
+	target_link_directories( euler-demo PRIVATE ${FREEGLUT_LIB_DIR} )
+	target_include_directories( euler-demo PRIVATE ${FREEGLUT_INC_DIR} )
+	target_link_libraries( euler-demo PRIVATE freeglut.lib glu32.lib opengl32.lib )
+endif()
 
-	# check that freeglut exists locally
-	if( NOT IS_DIRECTORY ${FREEGLUT_LIB_DIR} )
-		message( FATAL_ERROR "FreeGLUT library directory not found: Please set the FREEGLUT_LIB_DIR variable to the directory containing precompiled freeglut libs." )
-	endif()
-
-	if( NOT IS_DIRECTORY ${FREEGLUT_INC_DIR} )
-		message( FATAL_ERROR "FreeGLUT include directory not found: Please set the FREEGLUT_INC_DIR variable to the directory containing freeglut header files." )
-	endif()
-
-	# sets a relative link path to this cmake file
-	message( STATUS "Linking FreeGLUT." )
-	target_link_directories( ${PROJECT_NAME} PRIVATE ${FREEGLUT_LIB_DIR} )
-	target_include_directories( ${PROJECT_NAME} PRIVATE ${FREEGLUT_INC_DIR} )
-	target_link_libraries( ${PROJECT_NAME} PRIVATE freeglut.lib glu32.lib opengl32.lib )
-
-	# copy dll to binary folder
-	add_custom_command(
-		TARGET ${PROJECT_NAME}
-		POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+# copy dll to binary folder
+add_custom_command(
+	TARGET euler-demo
+	POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different
 		"${FREEGLUT_LIB_DIR}/freeglut.dll"
 		"${BIN_DIR}/freeglut.dll"
-	)
-endif()
+)
 
 # add project subdirectories
 add_subdirectory( src )

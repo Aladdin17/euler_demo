@@ -2,7 +2,7 @@
 #include <gl/freeglut.h>
 
 #ifdef BUILD_GUI_EXT
-	#include "gui/gui.h"
+	#include <gui.h>
 #endif
 
 static Camera camera;
@@ -112,7 +112,7 @@ void display(void)
 	// call reshape every frame to ensure the window is always the correct size
 	reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 
-	gui_update();
+	gui_update(&gimbal);
 #endif
 
 
