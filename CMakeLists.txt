@@ -1,7 +1,7 @@
 cmake_minimum_required( VERSION 3.8 )
 project(
 	euler_demo
-	LANGUAGES C
+	LANGUAGES CXX
 )
 
 set( CMAKE_POLICY_DEFAULT_CMP0076 NEW )
@@ -29,13 +29,13 @@ set_target_properties(
 target_compile_options(
 	${PROJECT_NAME}
 	PRIVATE
-		$<$<C_COMPILER_ID:GNU>: -Wall -Wextra -Wpedantic>	# set gcc compiler warnings
-		$<$<C_COMPILER_ID:GNU>: -std=c11> # set c11 standard
-		$<$<C_COMPILER_ID:GNU>: -Wno-unknown-pragmas> # disable warnings from external headers
+		$<$<CXX_COMPILER_ID:GNU>: -Wall -Wextra -Wpedantic>	# set gcc compiler warnings
+		$<$<CXX_COMPILER_ID:GNU>: -std=c11> # set c11 standard
+		$<$<CXX_COMPILER_ID:GNU>: -Wno-unknown-pragmas> # disable warnings from external headers
 
-		$<$<C_COMPILER_ID:MSVC>: /W4> # set MSVC compiler warnings
-		$<$<C_COMPILER_ID:MSVC>: /std:c11> # set c11 standard
-		$<$<C_COMPILER_ID:MSVC>: /external:anglebrackets /external:W0> # disable warnings from external headers
+		$<$<CXX_COMPILER_ID:MSVC>: /W4> # set MSVC compiler warnings
+		$<$<CXX_COMPILER_ID:MSVC>: /std:c11> # set c11 standard
+		$<$<CXX_COMPILER_ID:MSVC>: /external:anglebrackets /external:W0> # disable warnings from external headers
 )
 
 # find and link the FreeGLUT library
@@ -75,6 +75,10 @@ else()
 		"${BIN_DIR}/freeglut.dll"
 	)
 endif()
+
+# add imgui library
+add_subdirectory( imgui )
+target_link_libraries( ${PROJECT_NAME} imgui )
 
 # add project subdirectories
 add_subdirectory( src )

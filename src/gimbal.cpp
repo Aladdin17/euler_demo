@@ -45,7 +45,8 @@ void drawArrow()
 	glPushMatrix();
 	glColor3f( 0.5f, 0.5f, 0.5f );
 	glTranslatef( 0.0f, 0.0f, 0.3f );
-	drawCube( (GLfloat[]){ 0.15f, 0.15f, 0.6f } );
+	float dimensions[] = { 0.15f, 0.15f, 0.6f };
+	drawCube( dimensions );
 	glPopMatrix();
 
 	// arrow head

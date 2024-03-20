@@ -1,6 +1,0 @@
-[submodule "freeglut"]
-	path = freeglut
-	url = git@gitea.christienalden.dev:Aladdin17/freeglut.git
-[submodule "alibrary"]
-	path = alibrary
-	url = git@gitea.christienalden.dev:Aladdin17/aLibrary.git

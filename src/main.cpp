@@ -2,6 +2,9 @@
 // #include "drawing_objects.h"
 #include "gimbal.h"
 #include <gl/freeglut.h>
+// #include <imgui.h>
+// #include <backends/imgui_impl_opengl2.h>
+// #include <backends/imgui_impl_glut.h>
 
 static Camera camera;
 static Gimbal gimbal;
@@ -168,9 +171,6 @@ void keys(unsigned char key, int x, int y)
 		{
 			gimbal.rotation[2] += 360.0f;
 		}
-		break;
-	case '.':
-		gimbal.eulerMode = (gimbal.eulerMode + 1) % 6;
 		break;
 	case 'q': // fall through
 	case 'Q':

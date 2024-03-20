@@ -35,7 +35,8 @@
 			"AllBlockComments"
 		],
 		"files.associations": {
-			"freeglut.h": "c"
+			"freeglut.h": "c",
+			"imgui_impl_glut.h": "c"
 		}
 	}
 }
