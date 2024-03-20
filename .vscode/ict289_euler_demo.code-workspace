@@ -1,0 +1,41 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"cmake.sourceDirectory": "${workspaceFolder}",
+		"cmake.configureOnOpen": true,
+		"cmake.buildDirectory": "${workspaceFolder}/.build",
+		"cmake.configureSettings": {
+			"CMAKE_EXPORT_COMPILE_COMMANDS": "YES"
+		},
+
+		"launch": {
+			"version": "0.2.0",
+			"configurations": [
+				{
+					"name": "CMake (gdb)",
+					"type": "cppdbg",
+					"request": "launch",
+					"program": "${command:cmake.launchTargetPath}",
+					"args": [],
+					"stopAtEntry": false,
+					"cwd": "${command:cmake.getLaunchTargetDirectory}",
+				}
+			]
+		},
+
+		"foldOnOpen.disableFiles": [
+			"**/*.c"
+		],
+
+		"foldOnOpen.targets": [
+			"AllBlockComments"
+		],
+		"files.associations": {
+			"freeglut.h": "c"
+		}
+	}
+}
