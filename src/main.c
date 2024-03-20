@@ -269,7 +269,7 @@ int main(int argc, char** argv)
 
 	// window size and position
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB  | GLUT_DEPTH);
-	glutInitWindowSize(500, 500);
+	glutInitWindowSize(1200, 1200);
 	glutInitWindowPosition(0,0);
 	glutCreateWindow("Euler Rotation Demo");
 

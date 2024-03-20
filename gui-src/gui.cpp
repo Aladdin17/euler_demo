@@ -5,11 +5,35 @@
 #include <backends/imgui_impl_opengl2.h>
 #include <stdio.h>
 
+void helpMarker( const char* desc )
+{
+	// from ImGui::Demo
+	ImGui::TextDisabled("(?)");
+	if (ImGui::BeginItemTooltip())
+	{
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+		ImGui::TextUnformatted(desc);
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
+}
+
 bool rotateAxis(Gimbal* gimbal, Axis axis, char* label, float speed)
 {
 	bool active = false;
 	ImGui::PushID(label);
 	ImGui::Text(label);
+	if (ImGui::IsItemHovered())
+	{
+		if (ImGui::BeginTooltip())
+		{
+			const char* desc = "[0 , 360]";
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::Text(desc);
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+	}
 	ImGui::SameLine();
 	ImGui::PushItemWidth(100.0f);
 	char id[4];
@@ -64,7 +88,7 @@ void gui_init()
 
 	// can't remove this otherwise the program crashes at launch
 	ImGuiIO &io = ImGui::GetIO(); (void)io;
-	io.DisplaySize = ImVec2(500, 500);
+	io.DisplaySize = ImVec2(1200, 1200);
 
 	ImGuiStyle& style = ImGui::GetStyle();
 	style.WindowRounding = 4.0f;
@@ -87,6 +111,7 @@ void gui_update(Gimbal* gimbal)
 	ImGui::NewFrame();
 
 	ImGui::SetNextWindowSize(ImVec2(200, 300));
+	ImGui::SetNextWindowPos(ImVec2(50, 50));
 	ImGui::Begin("Euler Rotation Demo");
 		ImGui::SeparatorText("Display Options");
 		ImGui::Checkbox("Axes", &gimbal->drawAxes);
@@ -96,6 +121,22 @@ void gui_update(Gimbal* gimbal)
 
 		// euler mode - first row
 		ImGui::SeparatorText("Euler Mode");
+		if (ImGui::IsItemHovered())
+		{
+			if (ImGui::BeginTooltip())
+			{
+				const char* desc = " \
+Determines the order that the rotations are applied.\n \
+E.g., XYZ will apply X rotation then Y, then Z.\n \
+Each rotation is modified by the preceeding rotations\n \
+so the order of the rotations can change the final outcome.";
+				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+				ImGui::Text(desc);
+				ImGui::PopTextWrapPos();
+			}
+			ImGui::EndTooltip();
+		}
+
 		ImGui::RadioButton("XYZ", (int*) &gimbal->eulerMode, EULER_MODE_XYZ);
 		ImGui::SameLine(0.0f, 10.0f);
 		ImGui::RadioButton("YXZ", (int*) &gimbal->eulerMode, EULER_MODE_YXZ);
@@ -112,10 +153,25 @@ void gui_update(Gimbal* gimbal)
 		static float rotationDegPerSecond = 10.0f;
 		enum Axis activeAxis = AXIS_NONE;
 		ImGui::SeparatorText("Rotations");
+			if (ImGui::IsItemHovered())
+		{
+			if (ImGui::BeginTooltip())
+			{
+				const char* desc = " \
+The following boxes can be interacted with by clicking and dragging left/right; \
+they can also be Ctrl + Clicked to input a value directly.\n \
+The + and - buttons will rotate the selected axis by the chosen speed; \
+the direction of rotation based on a right-hand coordinate system.";
+				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+				ImGui::Text(desc);
+				ImGui::PopTextWrapPos();
+			}
+			ImGui::EndTooltip();
+		}
 		ImGui::Text(" ");
 		ImGui::SameLine();
 		ImGui::PushItemWidth(100.0f);
-		if (ImGui::DragFloat(" deg/s", &rotationDegPerSecond, 1.0f, 60.0f))
+		if (ImGui::DragFloat("##rotSpeed", &rotationDegPerSecond, 1.0f, 60.0f))
 		{
 			if (rotationDegPerSecond < 0.0f)
 			{
@@ -124,6 +180,20 @@ void gui_update(Gimbal* gimbal)
 			else if (rotationDegPerSecond > 360.0f)
 			{
 				rotationDegPerSecond = 360.0f;
+			}
+		}
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		ImGui::Text("deg/s");
+		if (ImGui::IsItemHovered())
+		{
+			if (ImGui::BeginTooltip())
+			{
+				const char* desc = "[0 , 60]";
+				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+				ImGui::Text(desc);
+				ImGui::PopTextWrapPos();
+				ImGui::EndTooltip();
 			}
 		}
 		if (rotateAxis(gimbal, AXIS_X, "X", rotationDegPerSecond))
