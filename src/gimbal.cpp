@@ -8,24 +8,13 @@
 #define PI 3.14159265358979323846f
 
 //--------------------------------------------------------------------------------------------------
-// enums
-//--------------------------------------------------------------------------------------------------
-
-enum Axis
-{
-	AXIS_X = 0,
-	AXIS_Y = 1,
-	AXIS_Z = 2
-};
-
-//--------------------------------------------------------------------------------------------------
 // prototypes
 //--------------------------------------------------------------------------------------------------
 
 static void drawArrow( void );
 static void drawAxes( GLfloat, GLfloat );
 static void drawCube( GLfloat[3] );
-static void drawCircle( float, int, float[3] );
+static void drawCircle( float, int, float[3], bool active );
 static void drawCube( GLfloat[3] );
 static void rotateEntity( Gimbal*, enum Axis );
 
@@ -110,7 +99,7 @@ void drawAxes(GLfloat lineWidth, GLfloat length)
 	}
 }
 
-void drawCircle( float radius, int segments, float color[3] )
+void drawCircle( float radius, int segments, float color[3], bool active )
 {
 	// disable lighting
 	GLboolean isLightingEnabled = glIsEnabled(GL_LIGHTING);
@@ -118,7 +107,7 @@ void drawCircle( float radius, int segments, float color[3] )
 
 	float width;
 	glGetFloatv( GL_LINE_WIDTH, &width );
-	glLineWidth( 4.0f );
+	glLineWidth( active ? 8.0f : 4.0f );
 	glBegin( GL_LINE_LOOP );
 	for (int i = 0; i < segments; i++)
 	{
@@ -317,7 +306,15 @@ void rotateEntity( Gimbal* gimbal, enum Axis axis )
 			glRotatef ( 90.0f, 0, 0, 1 );
 		}
 
-		drawCircle( 1.0f, 30, rotaxis );
+		if ( gimbal->activeAxis == axis )
+		{
+			drawCircle( 1.0f, 30, rotaxis, true );
+		}
+		else
+		{
+			drawCircle( 1.0f, 30, rotaxis, false );
+		}
+
 		glPopMatrix();
 	}
 }

@@ -9,6 +9,14 @@ typedef struct Camera
 	Vec3 up;
 } Camera;
 
+enum Axis
+{
+	AXIS_X = 0,
+	AXIS_Y = 1,
+	AXIS_Z = 2,
+	AXIS_NONE = 3
+};
+
 enum GimbalEulerMode
 {
 	XYZ,
@@ -25,6 +33,7 @@ typedef struct Gimbal
 	bool drawRotations;
 	bool drawAxes;
 	enum GimbalEulerMode eulerMode;
+	enum Axis activeAxis;
 } Gimbal;
 
 

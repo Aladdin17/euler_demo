@@ -25,6 +25,11 @@ set_target_properties(
 	# set the working directory to the binary directory
 	VS_DEBUGGER_WORKING_DIRECTORY "${BIN_DIR}"
 )
+target_compile_definitions(
+	${PROJECT_NAME}
+	PRIVATE
+		FREEGLUT
+)
 
 target_compile_options(
 	${PROJECT_NAME}
@@ -64,7 +69,7 @@ else()
 	message( STATUS "Linking FreeGLUT." )
 	target_link_directories( ${PROJECT_NAME} PRIVATE ${FREEGLUT_LIB_DIR} )
 	target_include_directories( ${PROJECT_NAME} PRIVATE ${FREEGLUT_INC_DIR} )
-	target_link_libraries( ${PROJECT_NAME} freeglut.lib glu32.lib opengl32.lib )
+	target_link_libraries( ${PROJECT_NAME} PRIVATE freeglut.lib glu32.lib opengl32.lib )
 
 	# copy dll to binary folder
 	add_custom_command(
@@ -78,7 +83,7 @@ endif()
 
 # add imgui library
 add_subdirectory( imgui )
-target_link_libraries( ${PROJECT_NAME} imgui )
+target_link_libraries( ${PROJECT_NAME} PUBLIC imgui )
 
 # add project subdirectories
 add_subdirectory( src )
