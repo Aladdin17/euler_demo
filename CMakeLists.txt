@@ -1,7 +1,7 @@
 cmake_minimum_required( VERSION 3.8 )
 project(
 	euler_demo
-	LANGUAGES CXX
+	LANGUAGES C
 )
 
 set( CMAKE_POLICY_DEFAULT_CMP0076 NEW )
@@ -24,11 +24,6 @@ set_target_properties(
 	RUNTIME_OUTPUT_DIRECTORY "${BIN_DIR}"
 	# set the working directory to the binary directory
 	VS_DEBUGGER_WORKING_DIRECTORY "${BIN_DIR}"
-)
-target_compile_definitions(
-	${PROJECT_NAME}
-	PRIVATE
-		FREEGLUT
 )
 
 target_compile_options(
@@ -80,10 +75,6 @@ else()
 		"${BIN_DIR}/freeglut.dll"
 	)
 endif()
-
-# add imgui library
-add_subdirectory( imgui )
-target_link_libraries( ${PROJECT_NAME} PUBLIC imgui )
 
 # add project subdirectories
 add_subdirectory( src )

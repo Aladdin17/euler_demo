@@ -2,8 +2,11 @@ cmake_minimum_required( VERSION 3.8 )
 target_sources(
 	${PROJECT_NAME}
 	PRIVATE
-		main.cpp
-		gimbal.cpp
+		main.c
+		gimbal.c
 		gimbal.h
-		imgui_build.cpp
 )
+
+if ( BUILD_GUI_EXT )
+	add_subdirectory( gui )
+endif()

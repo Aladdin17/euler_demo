@@ -1,6 +1,10 @@
 #pragma once
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef float Vec3[3];
 typedef struct Camera
 {
@@ -17,14 +21,14 @@ enum Axis
 	AXIS_NONE = 3
 };
 
-enum GimbalEulerMode
+enum EulerMode
 {
-	XYZ,
-	XZY,
-	YXZ,
-	YZX,
-	ZXY,
-	ZYX
+	EULER_MODE_XYZ,
+	EULER_MODE_XZY,
+	EULER_MODE_YXZ,
+	EULER_MODE_YZX,
+	EULER_MODE_ZXY,
+	EULER_MODE_ZYX
 };
 
 typedef struct Gimbal
@@ -32,9 +36,13 @@ typedef struct Gimbal
 	Vec3 rotation;
 	bool drawRotations;
 	bool drawAxes;
-	enum GimbalEulerMode eulerMode;
+	enum EulerMode eulerMode;
 	enum Axis activeAxis;
 } Gimbal;
 
 
 void drawGimbal(Gimbal* gimbal);
+
+#ifdef __cplusplus
+}
+#endif

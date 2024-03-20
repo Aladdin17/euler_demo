@@ -34,8 +34,7 @@ void drawArrow()
 	glPushMatrix();
 	glColor3f( 0.5f, 0.5f, 0.5f );
 	glTranslatef( 0.0f, 0.0f, 0.3f );
-	float dimensions[] = { 0.15f, 0.15f, 0.6f };
-	drawCube( dimensions );
+	drawCube( (GLfloat[]){ 0.15f, 0.15f, 0.6f } );
 	glPopMatrix();
 
 	// arrow head
@@ -231,32 +230,32 @@ void drawGimbal(Gimbal* gimbal)
 
 	switch (gimbal->eulerMode)
 	{
-	case XYZ:
+	case EULER_MODE_XYZ:
 		rotateEntity( gimbal, AXIS_X );
 		rotateEntity( gimbal, AXIS_Y );
 		rotateEntity( gimbal, AXIS_Z );
 		break;
-	case XZY:
+	case EULER_MODE_XZY:
 		rotateEntity( gimbal, AXIS_X );
 		rotateEntity( gimbal, AXIS_Z );
 		rotateEntity( gimbal, AXIS_Y );
 		break;
-	case YXZ:
+	case EULER_MODE_YXZ:
 		rotateEntity( gimbal, AXIS_Y );
 		rotateEntity( gimbal, AXIS_X );
 		rotateEntity( gimbal, AXIS_Z );
 		break;
-	case YZX:
+	case EULER_MODE_YZX:
 		rotateEntity( gimbal, AXIS_Y );
 		rotateEntity( gimbal, AXIS_Z );
 		rotateEntity( gimbal, AXIS_X );
 		break;
-	case ZXY:
+	case EULER_MODE_ZXY:
 		rotateEntity( gimbal, AXIS_Z );
 		rotateEntity( gimbal, AXIS_X );
 		rotateEntity( gimbal, AXIS_Y );
 		break;
-	case ZYX:
+	case EULER_MODE_ZYX:
 		rotateEntity( gimbal, AXIS_Z );
 		rotateEntity( gimbal, AXIS_Y );
 		rotateEntity( gimbal, AXIS_X );
