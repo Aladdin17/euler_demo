@@ -7,7 +7,7 @@ extern "C" {
 #endif
 
 void gui_init();
-void gui_update(Gimbal* gimbal);
+void gui_update(Gimbal* gimbal, Gimbal* target);
 void gui_render();
 void gui_shutdown();
 

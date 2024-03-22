@@ -34,6 +34,7 @@ enum EulerMode
 typedef struct Gimbal
 {
 	Vec3 rotation;
+	float alpha;
 	bool drawRotations;
 	bool drawAxes;
 	enum EulerMode eulerMode;

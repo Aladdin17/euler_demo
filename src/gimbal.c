@@ -11,10 +11,10 @@
 // prototypes
 //--------------------------------------------------------------------------------------------------
 
-static void drawArrow( void );
-static void drawAxes( GLfloat, GLfloat );
+static void drawArrow( float );
+static void drawAxes( GLfloat, GLfloat, float );
 static void drawCube( GLfloat[3] );
-static void drawCircle( float, int, float[3], bool active );
+static void drawCircle( float, int, float[3], bool, float );
 static void drawCube( GLfloat[3] );
 static void rotateEntity( Gimbal*, enum Axis );
 
@@ -22,7 +22,7 @@ static void rotateEntity( Gimbal*, enum Axis );
 // functions
 //--------------------------------------------------------------------------------------------------
 
-void drawArrow()
+void drawArrow(float alpha)
 {
 	GLUquadricObj *quadric;
 
@@ -32,21 +32,21 @@ void drawArrow()
 
 	// arrow shaft
 	glPushMatrix();
-	glColor3f( 0.5f, 0.5f, 0.5f );
+	glColor4f( 0.5f, 0.5f, 0.5f, alpha );
 	glTranslatef( 0.0f, 0.0f, 0.3f );
 	drawCube( (GLfloat[]){ 0.15f, 0.15f, 0.6f } );
 	glPopMatrix();
 
 	// arrow head
 	glPushMatrix();
-	glColor3f(0.0f, 1.0f, 0.0f);  // Green color
+	glColor4f(0.0f, 1.0f, 0.0f, alpha);  // Green color
 	glTranslatef(0.0f, 0.0f, 0.6f);  // Move to the end of the shaft
 	gluCylinder(quadric, 0.2, 0.0, 0.4, 32, 32);  // Cone shape
 	glPopMatrix();
 
 	// draw arrow head bottom
 	glPushMatrix();
-	glColor3f( 0.0, 1.0f, 0.0f );
+	glColor4f( 0.0, 1.0f, 0.0f , alpha);
 	glTranslatef(0.0f, 0.0f, 0.6f);
 	glRotatef( 180.0f, 1.0f, 0.0f, 0.0f );
 	gluDisk(quadric, 0.0, 0.2, 32, 32);
@@ -56,7 +56,7 @@ void drawArrow()
 	gluDeleteQuadric(quadric);
 }
 
-void drawAxes(GLfloat lineWidth, GLfloat length)
+void drawAxes(GLfloat lineWidth, GLfloat length, float alpha)
 {
 	// disable lighting
 	GLboolean isLightingEnabled = glIsEnabled(GL_LIGHTING);
@@ -69,21 +69,21 @@ void drawAxes(GLfloat lineWidth, GLfloat length)
 
 	// x-axis
 	glBegin(GL_LINES);
-		glColor3f(1,0,0);
+		glColor4f(1,0,0, alpha);
 		glVertex3f(0,0,0);
 		glVertex3f(length,0,0);
 	glEnd();
 
 	// y-axis
 	glBegin(GL_LINES);
-		glColor3f(0,1,0);
+		glColor4f(0,1,0, alpha);
 		glVertex3f(0,0,0);
 		glVertex3f(0,length,0);
 	glEnd();
 
 	// z-axis
 	glBegin(GL_LINES);
-		glColor3f(0,0,1);
+		glColor4f(0,0,1, alpha);
 		glVertex3f(0,0,0);
 		glVertex3f(0,0,length);
 	glEnd();
@@ -98,7 +98,7 @@ void drawAxes(GLfloat lineWidth, GLfloat length)
 	}
 }
 
-void drawCircle( float radius, int segments, float color[3], bool active )
+void drawCircle( float radius, int segments, float color[3], bool active, float alpha )
 {
 	// disable lighting
 	GLboolean isLightingEnabled = glIsEnabled(GL_LIGHTING);
@@ -113,7 +113,7 @@ void drawCircle( float radius, int segments, float color[3], bool active )
 		float theta = 2.0f * PI * (float)i / (float)segments;
 		float x = radius * cosf(theta);
 		float y = radius * sinf(theta);
-		glColor3fv(color);
+		glColor4f(color[0], color[1], color[2], alpha);
 		glVertex2f(x, y);
 	}
 	glEnd();
@@ -264,10 +264,10 @@ void drawGimbal(Gimbal* gimbal)
 
 	if (gimbal->drawAxes)
 	{
-		drawAxes(0.5f, 2.0f);
+		drawAxes(0.5f, 2.0f, gimbal->alpha);
 	}
 
-	drawArrow();
+	drawArrow(gimbal->alpha);
 	glPopMatrix();
 }
 
@@ -307,11 +307,11 @@ void rotateEntity( Gimbal* gimbal, enum Axis axis )
 
 		if ( gimbal->activeAxis == axis )
 		{
-			drawCircle( 1.0f, 30, rotaxis, true );
+			drawCircle( 1.0f, 30, rotaxis, true, gimbal->alpha );
 		}
 		else
 		{
-			drawCircle( 1.0f, 30, rotaxis, false );
+			drawCircle( 1.0f, 30, rotaxis, false, gimbal->alpha );
 		}
 
 		glPopMatrix();

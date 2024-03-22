@@ -7,6 +7,7 @@
 
 static Camera camera;
 static Gimbal gimbal;
+static Gimbal targetGimbal;
 
 void setCamera(int width, int height)
 {
@@ -104,6 +105,17 @@ void init(void)
 	gimbal.drawRotations = true;
 	gimbal.eulerMode = EULER_MODE_XYZ;
 	gimbal.activeAxis = AXIS_NONE;
+	gimbal.alpha = 1.0f;
+
+	// initialise target gimbal
+	targetGimbal.rotation[0] = 0.0f;
+	targetGimbal.rotation[1] = 0.0f;
+	targetGimbal.rotation[2] = 0.0f;
+	targetGimbal.drawAxes = false;
+	targetGimbal.drawRotations = false;
+	targetGimbal.eulerMode = EULER_MODE_XYZ;
+	targetGimbal.activeAxis = AXIS_NONE;
+	targetGimbal.alpha = 0.3f;
 }
 
 void display(void)
@@ -112,7 +124,7 @@ void display(void)
 	// call reshape every frame to ensure the window is always the correct size
 	reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 
-	gui_update(&gimbal);
+	gui_update(&gimbal, &targetGimbal);
 #endif
 
 
@@ -135,6 +147,14 @@ void display(void)
 
 	// draw gimbal and flush
 	drawGimbal(&gimbal);
+
+	// clear the depth buffer to render the target gimbal
+	glClear(GL_DEPTH_BUFFER_BIT);
+	// enable blending to render the target gimbal transparently
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	// draw the target gimbal
+	drawGimbal(&targetGimbal);
 
 #ifdef BUILD_GUI_EXT
 	gui_render();

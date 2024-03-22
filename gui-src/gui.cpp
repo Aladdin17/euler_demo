@@ -304,7 +304,7 @@ void gui_init()
 	ImGui_ImplGLUT_InstallFuncs();
 }
 
-void gui_update(Gimbal* gimbal)
+void gui_update(Gimbal* gimbal, Gimbal* target)
 {
 	ImGui_ImplOpenGL2_NewFrame();
 	ImGui_ImplGLUT_NewFrame();
@@ -411,37 +411,36 @@ the direction of rotation based on a right-hand coordinate system.";
 		gimbal->activeAxis = activeAxis;
 
 		static bool animate = false;
-		static float target[] = { 0.0f, 90.0f, 0.0f };
 		ImGui::Spacing();
 		ImGui::SeparatorText("Animation");
-		if (ImGui::DragFloat3("Target", target, 1.0f, 0.0f, 0.0f, "%.1f"))
+		if (ImGui::DragFloat3("Target", target->rotation, 1.0f, 0.0f, 0.0f, "%.1f"))
 		{
 			animate = false;
-			if (target[AXIS_X] >= 180.0f)
+			if (target->rotation[AXIS_X] >= 180.0f)
 			{
-				target[AXIS_X] -= 360.0f;
+				target->rotation[AXIS_X] -= 360.0f;
 			}
-			else if (target[AXIS_X] < -180.0f)
+			else if (target->rotation[AXIS_X] < -180.0f)
 			{
-				target[AXIS_X] += 360.0f;
-			}
-
-			if (target[AXIS_Y] >= 180.0f)
-			{
-				target[AXIS_Y] -= 360.0f;
-			}
-			else if (target[AXIS_Y] < -180.0f)
-			{
-				target[AXIS_Y] += 360.0f;
+				target->rotation[AXIS_X] += 360.0f;
 			}
 
-			if (target[AXIS_Z] >= 180.0f)
+			if (target->rotation[AXIS_Y] >= 180.0f)
 			{
-				target[AXIS_Z] -= 360.0f;
+				target->rotation[AXIS_Y] -= 360.0f;
 			}
-			else if (target[AXIS_Z] < -180.0f)
+			else if (target->rotation[AXIS_Y] < -180.0f)
 			{
-				target[AXIS_Z] += 360.0f;
+				target->rotation[AXIS_Y] += 360.0f;
+			}
+
+			if (target->rotation[AXIS_Z] >= 180.0f)
+			{
+				target->rotation[AXIS_Z] -= 360.0f;
+			}
+			else if (target->rotation[AXIS_Z] < -180.0f)
+			{
+				target->rotation[AXIS_Z] += 360.0f;
 			}
 		}
 
@@ -465,7 +464,7 @@ the direction of rotation based on a right-hand coordinate system.";
 
 		if ( animate )
 		{
-			if ( animations[animationMode](gimbal, target, rotationDegPerSecond) )
+			if ( animations[animationMode](gimbal, target->rotation, rotationDegPerSecond) )
 			{
 				animate = false;
 			}
