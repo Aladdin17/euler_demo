@@ -4,6 +4,8 @@
 #include <backends/imgui_impl_glut.h>
 #include <backends/imgui_impl_opengl2.h>
 #include <stdio.h>
+#include <cmath>
+#define ANGLE_EPSILON 5e-2f
 
 void helpMarker( const char* desc )
 {
@@ -42,11 +44,11 @@ bool rotateAxis(Gimbal* gimbal, Axis axis, char* label, float speed)
 	if (ImGui::DragFloat(id, &angle, 1.0f, 0.0f, 0.0f) || ImGui::IsItemActive())
 	{
 		active = true;
-		if (angle >= 360.0f)
+		if (angle >= 180.0f)
 		{
 			angle -= 360.0f;
 		}
-		else if (angle < -360.0f)
+		else if (angle < -180.0f)
 		{
 			angle += 360.0f;
 
@@ -61,7 +63,7 @@ bool rotateAxis(Gimbal* gimbal, Axis axis, char* label, float speed)
 	{
 		active = true;
 		gimbal->rotation[axis] += speed * ImGui::GetIO().DeltaTime;
-		if (gimbal->rotation[axis] >= 360.0f)
+		if (gimbal->rotation[axis] >= 180.0f)
 		{
 			gimbal->rotation[axis] -= 360.0f;
 		}
@@ -71,7 +73,7 @@ bool rotateAxis(Gimbal* gimbal, Axis axis, char* label, float speed)
 	{
 		active = true;
 		gimbal->rotation[axis] -= speed * ImGui::GetIO().DeltaTime;
-		if (gimbal->rotation[axis] < -360.0f)
+		if (gimbal->rotation[axis] < -180.0f)
 		{
 			gimbal->rotation[axis] += 360.0f;
 		}
@@ -212,12 +214,46 @@ the direction of rotation based on a right-hand coordinate system.";
 		ImGui::Spacing();
 
 		ImGui::Separator();
+		static bool animate = false;
+		static float target[] = { 0.0f, 0.0f, 0.0f };
 		if (ImGui::Button("Reset Orientation"))
 		{
-			gimbal->rotation[0] = 0.0f;
-			gimbal->rotation[1] = 0.0f;
-			gimbal->rotation[2] = 0.0f;
+			animate = true;
+			// gimbal->rotation[0] = 0.0f;
+			// gimbal->rotation[1] = 0.0f;
+			// gimbal->rotation[2] = 0.0f;
 		}
+
+		if ( animate )
+		{
+			// calculate the difference between the current rotation and the target
+			float diff[3] = { target[0] - gimbal->rotation[0], target[1] - gimbal->rotation[1], target[2] - gimbal->rotation[2] };
+
+			// if the magnitude of the difference is zero then we are done
+			float mag = sqrtf(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2]);
+			if ( mag <= ANGLE_EPSILON || (rotationDegPerSecond <= ANGLE_EPSILON ))
+			{
+				// stop animation and reset the target
+				animate = false;
+				gimbal->rotation[0] = target[0];
+				gimbal->rotation[1] = target[1];
+				gimbal->rotation[2] = target[2];
+			}
+			else
+			{
+				float dir[] = {
+					diff[0] >= 180.0f ? -1.0f : (diff[0] < 0.0f ? -1.0f : 1.0f),
+					diff[1] >= 180.0f ? -1.0f : (diff[1] < 0.0f ? -1.0f : 1.0f),
+					diff[2] >= 180.0f ? -1.0f : (diff[2] < 0.0f ? -1.0f : 1.0f)
+				};
+
+				// rotate the gimbal towards the target
+				gimbal->rotation[0] += dir[0] * rotationDegPerSecond * ImGui::GetIO().DeltaTime;
+				gimbal->rotation[1] += dir[1] * rotationDegPerSecond * ImGui::GetIO().DeltaTime;
+				gimbal->rotation[2] += dir[2] * rotationDegPerSecond * ImGui::GetIO().DeltaTime;
+			}
+		}
+
 	ImGui::End();
 }
 
