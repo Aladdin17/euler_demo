@@ -193,69 +193,18 @@ bool animateConcurrently(Gimbal* gimbal, float target[3], float rotationDegPerSe
 		diff[AXIS_Z] >= 180.0f ? -1.0f : (diff[AXIS_Z] < 0.0f ? -1.0f : 1.0f)
 	};
 
-	int first, second, third;
-	switch ( gimbal->eulerMode )
+	// find the largest delta
+	float largestDelta = fabs(diff[0]);
+	for ( int di = 1; di < 3; ++di )
 	{
-	case EULER_MODE_XYZ:
-		first = AXIS_X;
-		second = AXIS_Y;
-		third = AXIS_Z;
-		break;
-	case EULER_MODE_YXZ:
-		first = AXIS_Y;
-		second = AXIS_X;
-		third = AXIS_Z;
-		break;
-	case EULER_MODE_ZXY:
-		first = AXIS_Z;
-		second = AXIS_X;
-		third = AXIS_Y;
-		break;
-	case EULER_MODE_XZY:
-		first = AXIS_X;
-		second = AXIS_Z;
-		third = AXIS_Y;
-		break;
-	case EULER_MODE_YZX:
-		first = AXIS_Y;
-		second = AXIS_Z;
-		third = AXIS_X;
-		break;
-	case EULER_MODE_ZYX:
-		first = AXIS_Z;
-		second = AXIS_Y;
-		third = AXIS_X;
-		break;
+		float delta = fabs(diff[di]);
+		if ( delta > largestDelta )
+		{
+			largestDelta = delta;
+		}
 	}
 
-	bool done[] = {
-		(diff[AXIS_X] <= ANGLE_EPSILON && diff[AXIS_X] >= -ANGLE_EPSILON),
-		(diff[AXIS_Y] <= ANGLE_EPSILON && diff[AXIS_Y] >= -ANGLE_EPSILON),
-		(diff[AXIS_Z] <= ANGLE_EPSILON && diff[AXIS_Z] >= -ANGLE_EPSILON)
-	};
-
-	float modifier = 1.0f;
-
-	if ( !done[first] )
-	{
-		modifier = diff[first];
-	}
-	else if ( !done[second] )
-	{
-		modifier = diff[second];
-	}
-	else if ( !done[third] )
-	{
-		modifier = diff[third];
-	}
-
-	float modifiers[] = {
-		diff[0] / modifier,
-		diff[1] / modifier,
-		diff[2] / modifier
-	};
-
-	bool finished = sqrtf(diff[first] * diff[first] + diff[second] * diff[second] + diff[third] * diff[third]) <= ANGLE_EPSILON;
+	bool finished = sqrtf(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2]) <= ANGLE_EPSILON;
 	if ( finished )
 	{
 		// fix the rotation to the target and return
@@ -266,6 +215,12 @@ bool animateConcurrently(Gimbal* gimbal, float target[3], float rotationDegPerSe
 	}
 	else
 	{
+		float modifiers[] = {
+			diff[0] / largestDelta,
+			diff[1] / largestDelta,
+			diff[2] / largestDelta
+		};
+
 		// move the axes concurrently
 		gimbal->rotation[0] += dir[0] * rotationDegPerSecond * ImGui::GetIO().DeltaTime * modifiers[0];
 		gimbal->rotation[1] += dir[1] * rotationDegPerSecond * ImGui::GetIO().DeltaTime * modifiers[1];
