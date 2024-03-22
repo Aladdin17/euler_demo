@@ -7,6 +7,8 @@
 #include <cmath>
 #define ANGLE_EPSILON 5e-2f
 
+typedef bool (*animationFunc)(Gimbal*, float[3], float);
+
 void helpMarker( const char* desc )
 {
 	// from ImGui::Demo
@@ -161,8 +163,74 @@ bool animateSequentially(Gimbal* gimbal, float target[3], float rotationDegPerSe
 	}
 	else // done
 	{
+		gimbal->rotation[first] = target[first];
+		gimbal->rotation[second] = target[second];
 		gimbal->rotation[third] = target[third];
 		return true;
+	}
+
+	return false;
+}
+
+bool animateConcurrently(Gimbal* gimbal, float target[3], float rotationDegPerSecond)
+{
+	for ( int ti = 0; ti < 3; ++ti )
+	{
+		if ( target[ti] >= 180.0f )
+		{
+			target[ti] -= 360.0f;
+		}
+		else if ( target[ti] < -180.0f )
+		{
+			target[ti] += 360.0f;
+		}
+	}
+	// calculate the difference between the current rotation and the target
+	float diff[3] = { target[AXIS_X] - gimbal->rotation[AXIS_X], target[AXIS_Y] - gimbal->rotation[AXIS_Y], target[AXIS_Z] - gimbal->rotation[AXIS_Z] };
+	float dir[] = {
+		diff[AXIS_X] >= 180.0f ? -1.0f : (diff[AXIS_X] < 0.0f ? -1.0f : 1.0f),
+		diff[AXIS_Y] >= 180.0f ? -1.0f : (diff[AXIS_Y] < 0.0f ? -1.0f : 1.0f),
+		diff[AXIS_Z] >= 180.0f ? -1.0f : (diff[AXIS_Z] < 0.0f ? -1.0f : 1.0f)
+	};
+
+	int baseline = 0;
+	switch ( gimbal->eulerMode )
+	{
+	case EULER_MODE_XYZ:
+	case EULER_MODE_XZY:
+		baseline = AXIS_X;
+		break;
+	case EULER_MODE_YXZ:
+	case EULER_MODE_YZX:
+		baseline = AXIS_Y;
+		break;
+	case EULER_MODE_ZXY:
+	case EULER_MODE_ZYX:
+		baseline = AXIS_Z;
+		break;
+	}
+
+	float modifier[] = {
+		diff[0] / diff[baseline],
+		diff[1] / diff[baseline],
+		diff[2] / diff[baseline]
+	};
+
+	bool done = sqrtf( diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2] ) <= ANGLE_EPSILON;
+	if ( done )
+	{
+		// fix the rotation to the target and return
+		gimbal->rotation[0] = target[0];
+		gimbal->rotation[1] = target[1];
+		gimbal->rotation[2] = target[2];
+		return true;
+	}
+	else
+	{
+		// move the axes concurrently
+		gimbal->rotation[0] += dir[0] * rotationDegPerSecond * ImGui::GetIO().DeltaTime * modifier[0];
+		gimbal->rotation[1] += dir[1] * rotationDegPerSecond * ImGui::GetIO().DeltaTime * modifier[1];
+		gimbal->rotation[2] += dir[2] * rotationDegPerSecond * ImGui::GetIO().DeltaTime * modifier[2];
 	}
 
 	return false;
@@ -299,7 +367,7 @@ the direction of rotation based on a right-hand coordinate system.";
 		gimbal->activeAxis = activeAxis;
 
 		static bool animate = false;
-		static float target[] = { 726.0f, 90.0f, 45.0f };
+		static float target[] = { 0.0f, 90.0f, 0.0f };
 		ImGui::Spacing();
 		ImGui::SeparatorText("Animation");
 		if (ImGui::DragFloat3("Target", target, 1.0f, 0.0f, 0.0f, "%.1f"))
@@ -344,9 +412,16 @@ the direction of rotation based on a right-hand coordinate system.";
 			animate = false;
 		}
 
+		static const animationFunc animations[] = { animateSequentially, animateConcurrently };
+		static int animationMode = 0;
+		ImGui::SeparatorText("Animation Mode");
+		ImGui::RadioButton("Sequential", &animationMode, 0);
+		ImGui::SameLine(0.0f, 10.0f);
+		ImGui::RadioButton("Concurrent", &animationMode, 1);
+
 		if ( animate )
 		{
-			if ( animateSequentially(gimbal, target, rotationDegPerSecond) )
+			if ( animations[animationMode](gimbal, target, rotationDegPerSecond) )
 			{
 				animate = false;
 			}
