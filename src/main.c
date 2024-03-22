@@ -155,6 +155,7 @@ void display(void)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	// draw the target gimbal
 	drawGimbal(&targetGimbal);
+	glDisable(GL_BLEND);
 
 #ifdef BUILD_GUI_EXT
 	gui_render();

@@ -310,13 +310,21 @@ void gui_update(Gimbal* gimbal, Gimbal* target)
 	ImGui_ImplGLUT_NewFrame();
 	ImGui::NewFrame();
 
-	ImGui::SetNextWindowSize(ImVec2(280, 400));
-	ImGui::SetNextWindowPos(ImVec2(50, 50));
-	ImGui::Begin("Euler Rotation Demo");
+	ImGui::SetNextWindowSize(ImVec2(280, 420));
+	ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+	ImGui::Begin("Euler Rotation Demo", nullptr, ImGuiWindowFlags_NoResize);
+		static int selector = 0;
 		ImGui::SeparatorText("Display Options");
-		ImGui::Checkbox("Axes", &gimbal->drawAxes);
+		ImGui::Text("Gimbal:");
 		ImGui::SameLine(0.0f, 10.0f);
-		ImGui::Checkbox("Gizmo", &gimbal->drawRotations);
+		ImGui::Checkbox("Axes##gimbal_axes", &gimbal->drawAxes);
+		ImGui::SameLine(0.0f, 10.0f);
+		ImGui::Checkbox("Gizmo##gimbal_gizmo", &gimbal->drawRotations);
+		ImGui::Text("Target:");
+		ImGui::SameLine(0.0f, 10.0f);
+		ImGui::Checkbox("Axes##target_axes", &target->drawAxes);
+		ImGui::SameLine(0.0f, 10.0f);
+		ImGui::Checkbox("Gizmo##target_gizmo", &target->drawRotations);
 		ImGui::Spacing();
 
 		// euler mode - first row
@@ -349,6 +357,8 @@ so the order of the rotations can change the final outcome.";
 		ImGui::SameLine(0.0f, 10.0f);
 		ImGui::RadioButton("ZYX", (int*) &gimbal->eulerMode, EULER_MODE_ZYX);
 		ImGui::Spacing();
+		// bit of a hack to get the target to update the euler mode
+		target->eulerMode = gimbal->eulerMode;
 
 		static float rotationDegPerSecond = 10.0f;
 		enum Axis activeAxis = AXIS_NONE;
@@ -413,7 +423,7 @@ the direction of rotation based on a right-hand coordinate system.";
 		static bool animate = false;
 		ImGui::Spacing();
 		ImGui::SeparatorText("Animation");
-		if (ImGui::DragFloat3("Target", target->rotation, 1.0f, 0.0f, 0.0f, "%.1f"))
+		if (ImGui::DragFloat3("Target", target->rotation, 1.0f, 0.0f, 0.0f, "%.1f") || ImGui::IsItemActive())
 		{
 			animate = false;
 			if (target->rotation[AXIS_X] >= 180.0f)
