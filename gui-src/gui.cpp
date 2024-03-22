@@ -82,6 +82,92 @@ bool rotateAxis(Gimbal* gimbal, Axis axis, char* label, float speed)
 	return active;
 }
 
+bool animateSequentially(Gimbal* gimbal, float target[3], float rotationDegPerSecond)
+{
+	for ( int ti = 0; ti < 3; ++ti )
+	{
+		if ( target[ti] >= 180.0f )
+		{
+			target[ti] -= 360.0f;
+		}
+		else if ( target[ti] < -180.0f )
+		{
+			target[ti] += 360.0f;
+		}
+	}
+	// calculate the difference between the current rotation and the target
+	float diff[3] = { target[AXIS_X] - gimbal->rotation[AXIS_X], target[AXIS_Y] - gimbal->rotation[AXIS_Y], target[AXIS_Z] - gimbal->rotation[AXIS_Z] };
+	float dir[] = {
+		diff[AXIS_X] >= 180.0f ? -1.0f : (diff[AXIS_X] < 0.0f ? -1.0f : 1.0f),
+		diff[AXIS_Y] >= 180.0f ? -1.0f : (diff[AXIS_Y] < 0.0f ? -1.0f : 1.0f),
+		diff[AXIS_Z] >= 180.0f ? -1.0f : (diff[AXIS_Z] < 0.0f ? -1.0f : 1.0f)
+	};
+
+	bool done[] = {
+		(diff[AXIS_X] <= ANGLE_EPSILON && diff[AXIS_X] >= -ANGLE_EPSILON),
+		(diff[AXIS_Y] <= ANGLE_EPSILON && diff[AXIS_Y] >= -ANGLE_EPSILON),
+		(diff[AXIS_Z] <= ANGLE_EPSILON && diff[AXIS_Z] >= -ANGLE_EPSILON)
+	};
+
+	int first, second, third;
+	switch ( gimbal->eulerMode )
+	{
+	case EULER_MODE_XYZ:
+		first = AXIS_X;
+		second = AXIS_Y;
+		third = AXIS_Z;
+		break;
+	case EULER_MODE_YXZ:
+		first = AXIS_Y;
+		second = AXIS_X;
+		third = AXIS_Z;
+		break;
+	case EULER_MODE_ZXY:
+		first = AXIS_Z;
+		second = AXIS_X;
+		third = AXIS_Y;
+		break;
+	case EULER_MODE_XZY:
+		first = AXIS_X;
+		second = AXIS_Z;
+		third = AXIS_Y;
+		break;
+	case EULER_MODE_YZX:
+		first = AXIS_Y;
+		second = AXIS_Z;
+		third = AXIS_X;
+		break;
+	case EULER_MODE_ZYX:
+		first = AXIS_Z;
+		second = AXIS_Y;
+		third = AXIS_X;
+		break;
+	}
+
+	// move each axis one after the other
+	if ( !done[first] )
+	{
+		gimbal->rotation[first] += dir[first] * rotationDegPerSecond * ImGui::GetIO().DeltaTime;
+	}
+	else if ( !done[second] )
+	{
+		gimbal->rotation[first] = target[first];
+		gimbal->rotation[second] += dir[second] * rotationDegPerSecond * ImGui::GetIO().DeltaTime;
+	}
+	else if ( !done[third] )
+	{
+		gimbal->rotation[second] = target[second];
+		gimbal->rotation[third] += dir[third] * rotationDegPerSecond * ImGui::GetIO().DeltaTime;
+	}
+	else // done
+	{
+		gimbal->rotation[third] = target[third];
+		return true;
+	}
+
+	return false;
+}
+
 void gui_init()
 {
 	IMGUI_CHECKVERSION();
@@ -112,7 +198,7 @@ void gui_update(Gimbal* gimbal)
 	ImGui_ImplGLUT_NewFrame();
 	ImGui::NewFrame();
 
-	ImGui::SetNextWindowSize(ImVec2(200, 300));
+	ImGui::SetNextWindowSize(ImVec2(280, 400));
 	ImGui::SetNextWindowPos(ImVec2(50, 50));
 	ImGui::Begin("Euler Rotation Demo");
 		ImGui::SeparatorText("Display Options");
@@ -211,46 +297,58 @@ the direction of rotation based on a right-hand coordinate system.";
 			activeAxis = AXIS_Z;
 		}
 		gimbal->activeAxis = activeAxis;
+
+		static bool animate = false;
+		static float target[] = { 726.0f, 90.0f, 45.0f };
 		ImGui::Spacing();
+		ImGui::SeparatorText("Animation");
+		if (ImGui::DragFloat3("Target", target, 1.0f, 0.0f, 0.0f, "%.1f"))
+		{
+			animate = false;
+			if (target[AXIS_X] >= 180.0f)
+			{
+				target[AXIS_X] -= 360.0f;
+			}
+			else if (target[AXIS_X] < -180.0f)
+			{
+				target[AXIS_X] += 360.0f;
+			}
+
+			if (target[AXIS_Y] >= 180.0f)
+			{
+				target[AXIS_Y] -= 360.0f;
+			}
+			else if (target[AXIS_Y] < -180.0f)
+			{
+				target[AXIS_Y] += 360.0f;
+			}
+
+			if (target[AXIS_Z] >= 180.0f)
+			{
+				target[AXIS_Z] -= 360.0f;
+			}
+			else if (target[AXIS_Z] < -180.0f)
+			{
+				target[AXIS_Z] += 360.0f;
+			}
+		}
 
 		ImGui::Separator();
-		static bool animate = false;
-		static float target[] = { 0.0f, 0.0f, 0.0f };
-		if (ImGui::Button("Reset Orientation"))
+		if (ImGui::Button("Play"))
 		{
 			animate = true;
-			// gimbal->rotation[0] = 0.0f;
-			// gimbal->rotation[1] = 0.0f;
-			// gimbal->rotation[2] = 0.0f;
+		}
+		ImGui::SameLine(0.0f, 10.0f);
+		if (ImGui::Button("Stop"))
+		{
+			animate = false;
 		}
 
 		if ( animate )
 		{
-			// calculate the difference between the current rotation and the target
-			float diff[3] = { target[0] - gimbal->rotation[0], target[1] - gimbal->rotation[1], target[2] - gimbal->rotation[2] };
-
-			// if the magnitude of the difference is zero then we are done
-			float mag = sqrtf(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2]);
-			if ( mag <= ANGLE_EPSILON || (rotationDegPerSecond <= ANGLE_EPSILON ))
+			if ( animateSequentially(gimbal, target, rotationDegPerSecond) )
 			{
-				// stop animation and reset the target
 				animate = false;
-				gimbal->rotation[0] = target[0];
-				gimbal->rotation[1] = target[1];
-				gimbal->rotation[2] = target[2];
-			}
-			else
-			{
-				float dir[] = {
-					diff[0] >= 180.0f ? -1.0f : (diff[0] < 0.0f ? -1.0f : 1.0f),
-					diff[1] >= 180.0f ? -1.0f : (diff[1] < 0.0f ? -1.0f : 1.0f),
-					diff[2] >= 180.0f ? -1.0f : (diff[2] < 0.0f ? -1.0f : 1.0f)
-				};
-
-				// rotate the gimbal towards the target
-				gimbal->rotation[0] += dir[0] * rotationDegPerSecond * ImGui::GetIO().DeltaTime;
-				gimbal->rotation[1] += dir[1] * rotationDegPerSecond * ImGui::GetIO().DeltaTime;
-				gimbal->rotation[2] += dir[2] * rotationDegPerSecond * ImGui::GetIO().DeltaTime;
 			}
 		}
 
