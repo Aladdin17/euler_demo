@@ -216,9 +216,9 @@ bool animateConcurrently(Gimbal* gimbal, float target[3], float rotationDegPerSe
 	else
 	{
 		float modifiers[] = {
-			diff[0] / largestDelta,
-			diff[1] / largestDelta,
-			diff[2] / largestDelta
+			fabsf(diff[0]) / largestDelta,
+			fabsf(diff[1]) / largestDelta,
+			fabsf(diff[2]) / largestDelta
 		};
 
 		// move the axes concurrently
