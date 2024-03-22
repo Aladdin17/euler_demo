@@ -193,31 +193,70 @@ bool animateConcurrently(Gimbal* gimbal, float target[3], float rotationDegPerSe
 		diff[AXIS_Z] >= 180.0f ? -1.0f : (diff[AXIS_Z] < 0.0f ? -1.0f : 1.0f)
 	};
 
-	int baseline = 0;
+	int first, second, third;
 	switch ( gimbal->eulerMode )
 	{
 	case EULER_MODE_XYZ:
-	case EULER_MODE_XZY:
-		baseline = AXIS_X;
+		first = AXIS_X;
+		second = AXIS_Y;
+		third = AXIS_Z;
 		break;
 	case EULER_MODE_YXZ:
-	case EULER_MODE_YZX:
-		baseline = AXIS_Y;
+		first = AXIS_Y;
+		second = AXIS_X;
+		third = AXIS_Z;
 		break;
 	case EULER_MODE_ZXY:
+		first = AXIS_Z;
+		second = AXIS_X;
+		third = AXIS_Y;
+		break;
+	case EULER_MODE_XZY:
+		first = AXIS_X;
+		second = AXIS_Z;
+		third = AXIS_Y;
+		break;
+	case EULER_MODE_YZX:
+		first = AXIS_Y;
+		second = AXIS_Z;
+		third = AXIS_X;
+		break;
 	case EULER_MODE_ZYX:
-		baseline = AXIS_Z;
+		first = AXIS_Z;
+		second = AXIS_Y;
+		third = AXIS_X;
 		break;
 	}
 
-	float modifier[] = {
-		diff[0] / diff[baseline],
-		diff[1] / diff[baseline],
-		diff[2] / diff[baseline]
+	bool done[] = {
+		(diff[AXIS_X] <= ANGLE_EPSILON && diff[AXIS_X] >= -ANGLE_EPSILON),
+		(diff[AXIS_Y] <= ANGLE_EPSILON && diff[AXIS_Y] >= -ANGLE_EPSILON),
+		(diff[AXIS_Z] <= ANGLE_EPSILON && diff[AXIS_Z] >= -ANGLE_EPSILON)
 	};
 
-	bool done = sqrtf( diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2] ) <= ANGLE_EPSILON;
-	if ( done )
+	float modifier = 1.0f;
+
+	if ( !done[first] )
+	{
+		modifier = diff[first];
+	}
+	else if ( !done[second] )
+	{
+		modifier = diff[second];
+	}
+	else if ( !done[third] )
+	{
+		modifier = diff[third];
+	}
+
+	float modifiers[] = {
+		diff[0] / modifier,
+		diff[1] / modifier,
+		diff[2] / modifier
+	};
+
+	bool finished = sqrtf(diff[first] * diff[first] + diff[second] * diff[second] + diff[third] * diff[third]) <= ANGLE_EPSILON;
+	if ( finished )
 	{
 		// fix the rotation to the target and return
 		gimbal->rotation[0] = target[0];
@@ -228,9 +267,9 @@ bool animateConcurrently(Gimbal* gimbal, float target[3], float rotationDegPerSe
 	else
 	{
 		// move the axes concurrently
-		gimbal->rotation[0] += dir[0] * rotationDegPerSecond * ImGui::GetIO().DeltaTime * modifier[0];
-		gimbal->rotation[1] += dir[1] * rotationDegPerSecond * ImGui::GetIO().DeltaTime * modifier[1];
-		gimbal->rotation[2] += dir[2] * rotationDegPerSecond * ImGui::GetIO().DeltaTime * modifier[2];
+		gimbal->rotation[0] += dir[0] * rotationDegPerSecond * ImGui::GetIO().DeltaTime * modifiers[0];
+		gimbal->rotation[1] += dir[1] * rotationDegPerSecond * ImGui::GetIO().DeltaTime * modifiers[1];
+		gimbal->rotation[2] += dir[2] * rotationDegPerSecond * ImGui::GetIO().DeltaTime * modifiers[2];
 	}
 
 	return false;
