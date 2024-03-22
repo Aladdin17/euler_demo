@@ -150,16 +150,40 @@ bool animateSequentially(Gimbal* gimbal, float target[3], float rotationDegPerSe
 	if ( !done[first] )
 	{
 		gimbal->rotation[first] += dir[first] * rotationDegPerSecond * ImGui::GetIO().DeltaTime;
+		if ( gimbal->rotation[first] >= 180.0f )
+		{
+			gimbal->rotation[first] -= 360.0f;
+		}
+		else if ( gimbal->rotation[first] < -180.0f )
+		{
+			gimbal->rotation[first] += 360.0f;
+		}
 	}
 	else if ( !done[second] )
 	{
 		gimbal->rotation[first] = target[first];
 		gimbal->rotation[second] += dir[second] * rotationDegPerSecond * ImGui::GetIO().DeltaTime;
+		if ( gimbal->rotation[second] >= 180.0f )
+		{
+			gimbal->rotation[second] -= 360.0f;
+		}
+		else if ( gimbal->rotation[second] < -180.0f )
+		{
+			gimbal->rotation[second] += 360.0f;
+		}
 	}
 	else if ( !done[third] )
 	{
 		gimbal->rotation[second] = target[second];
 		gimbal->rotation[third] += dir[third] * rotationDegPerSecond * ImGui::GetIO().DeltaTime;
+		if ( gimbal->rotation[third] >= 180.0f )
+		{
+			gimbal->rotation[third] -= 360.0f;
+		}
+		else if ( gimbal->rotation[third] < -180.0f )
+		{
+			gimbal->rotation[third] += 360.0f;
+		}
 	}
 	else // done
 	{
@@ -223,8 +247,34 @@ bool animateConcurrently(Gimbal* gimbal, float target[3], float rotationDegPerSe
 
 		// move the axes concurrently
 		gimbal->rotation[0] += dir[0] * rotationDegPerSecond * ImGui::GetIO().DeltaTime * modifiers[0];
+		if ( gimbal->rotation[0] >= 180.0f )
+		{
+			gimbal->rotation[0] -= 360.0f;
+		}
+		else if ( gimbal->rotation[0] < -180.0f )
+		{
+			gimbal->rotation[0] += 360.0f;
+		}
+
 		gimbal->rotation[1] += dir[1] * rotationDegPerSecond * ImGui::GetIO().DeltaTime * modifiers[1];
+		if ( gimbal->rotation[1] >= 180.0f )
+		{
+			gimbal->rotation[1] -= 360.0f;
+		}
+		else if ( gimbal->rotation[1] < -180.0f )
+		{
+			gimbal->rotation[1] += 360.0f;
+		}
+
 		gimbal->rotation[2] += dir[2] * rotationDegPerSecond * ImGui::GetIO().DeltaTime * modifiers[2];
+		if ( gimbal->rotation[2] >= 180.0f )
+		{
+			gimbal->rotation[2] -= 360.0f;
+		}
+		else if ( gimbal->rotation[2] < -180.0f )
+		{
+			gimbal->rotation[2] += 360.0f;
+		}
 	}
 
 	return false;
