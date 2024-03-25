@@ -382,6 +382,23 @@ the direction of rotation based on a right-hand coordinate system.";
 		}
 		gimbal->activeAxis = activeAxis;
 		activeAxis = AXIS_NONE;
+		ImGui::SameLine(0.0f, 3.0f);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 1.0f));
+		if (ImGui::Button("X##reset_primary"))
+		{
+			gimbal->rotation[AXIS_X] = 0.0f;
+			gimbal->rotation[AXIS_Y] = 0.0f;
+			gimbal->rotation[AXIS_Z] = 0.0f;
+		}
+		if (ImGui::IsItemHovered())
+		{
+			if (ImGui::BeginTooltip())
+			{
+				ImGui::Text("Reset primary rotations");
+				ImGui::EndTooltip();
+			}
+		}
+		ImGui::PopStyleColor();
 
 		// target rotations
 		ImGui::Text("Target");
@@ -404,6 +421,23 @@ the direction of rotation based on a right-hand coordinate system.";
 		}
 		target->activeAxis = activeAxis;
 		activeAxis = AXIS_NONE;
+		ImGui::SameLine(0.0f, 3.0f);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 1.0f));
+		if (ImGui::Button("X##reset_target"))
+		{
+			target->rotation[AXIS_X] = 0.0f;
+			target->rotation[AXIS_Y] = 0.0f;
+			target->rotation[AXIS_Z] = 0.0f;
+		}
+		if (ImGui::IsItemHovered())
+		{
+			if (ImGui::BeginTooltip())
+			{
+				ImGui::Text("Reset target rotations");
+				ImGui::EndTooltip();
+			}
+		}
+		ImGui::PopStyleColor();
 
 		static bool animate = false;
 		ImGui::Spacing();
