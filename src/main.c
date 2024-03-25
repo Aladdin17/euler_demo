@@ -6,8 +6,8 @@
 #endif
 
 static Camera camera;
-static Gimbal gimbal;
-static Gimbal targetGimbal;
+static Gimbal primary;
+static Gimbal target;
 
 void setCamera(int width, int height)
 {
@@ -98,24 +98,24 @@ void init(void)
 	);
 
 	// initialise gimbal
-	gimbal.rotation[0] = 0.0f;
-	gimbal.rotation[1] = 0.0f;
-	gimbal.rotation[2] = 0.0f;
-	gimbal.drawAxes = false;
-	gimbal.drawRotations = true;
-	gimbal.eulerMode = EULER_MODE_XYZ;
-	gimbal.activeAxis = AXIS_NONE;
-	gimbal.alpha = 1.0f;
+	primary.rotation[0] = 0.0f;
+	primary.rotation[1] = 0.0f;
+	primary.rotation[2] = 0.0f;
+	primary.drawAxes = false;
+	primary.drawRotations = true;
+	primary.eulerMode = EULER_MODE_XYZ;
+	primary.activeAxis = AXIS_NONE;
+	primary.alpha = 1.0f;
 
 	// initialise target gimbal
-	targetGimbal.rotation[0] = 0.0f;
-	targetGimbal.rotation[1] = 0.0f;
-	targetGimbal.rotation[2] = 0.0f;
-	targetGimbal.drawAxes = false;
-	targetGimbal.drawRotations = false;
-	targetGimbal.eulerMode = EULER_MODE_XYZ;
-	targetGimbal.activeAxis = AXIS_NONE;
-	targetGimbal.alpha = 0.3f;
+	target.rotation[0] = 0.0f;
+	target.rotation[1] = 0.0f;
+	target.rotation[2] = 0.0f;
+	target.drawAxes = false;
+	target.drawRotations = false;
+	target.eulerMode = EULER_MODE_XYZ;
+	target.activeAxis = AXIS_NONE;
+	target.alpha = 0.3f;
 }
 
 void display(void)
@@ -124,7 +124,7 @@ void display(void)
 	// call reshape every frame to ensure the window is always the correct size
 	reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 
-	gui_update(&gimbal, &targetGimbal);
+	gui_update(&primary, &target);
 #endif
 
 
@@ -146,7 +146,7 @@ void display(void)
 	);
 
 	// draw gimbal and flush
-	drawGimbal(&gimbal);
+	drawGimbal(&primary);
 
 	// clear the depth buffer to render the target gimbal
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -154,7 +154,7 @@ void display(void)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	// draw the target gimbal
-	drawGimbal(&targetGimbal);
+	drawGimbal(&target);
 	glDisable(GL_BLEND);
 
 #ifdef BUILD_GUI_EXT
@@ -164,6 +164,7 @@ void display(void)
 	glFlush();
 }
 
+#ifndef BUILD_GUI_EXT
 void keys(unsigned char key, int x, int y)
 {
 	// 'use' the parameters to avoid warnings
@@ -173,83 +174,83 @@ void keys(unsigned char key, int x, int y)
 	{
 	case 'a': // fall through
 	case 'A':
-		gimbal.drawAxes = !gimbal.drawAxes;
+		primary.drawAxes = !primary.drawAxes;
 		break;
 	case 'g': // fall through
 	case 'G':
-		gimbal.drawRotations = !gimbal.drawRotations;
+		primary.drawRotations = !primary.drawRotations;
 		break;
 	case 'x':
-		gimbal.activeAxis = AXIS_X;
-		gimbal.rotation[0] += 5.0f;
-		if (gimbal.rotation[0] >= 360.0f)
+		primary.activeAxis = AXIS_X;
+		primary.rotation[0] += 5.0f;
+		if (primary.rotation[0] >= 360.0f)
 		{
-			gimbal.rotation[0] -= 360.0f;
+			primary.rotation[0] -= 360.0f;
 		}
 		break;
 	case 'X':
-		gimbal.activeAxis = AXIS_X;
-		gimbal.rotation[0] -= 5.0f;
-		if (gimbal.rotation[0] <= 360.0f)
+		primary.activeAxis = AXIS_X;
+		primary.rotation[0] -= 5.0f;
+		if (primary.rotation[0] <= 360.0f)
 		{
-			gimbal.rotation[0] += 360.0f;
+			primary.rotation[0] += 360.0f;
 		}
 		break;
 	case 'y':
-		gimbal.activeAxis = AXIS_Y;
-		gimbal.rotation[1] += 5.0f;
-		if (gimbal.rotation[1] >= 360.0f)
+		primary.activeAxis = AXIS_Y;
+		primary.rotation[1] += 5.0f;
+		if (primary.rotation[1] >= 360.0f)
 		{
-			gimbal.rotation[1] -= 360.0f;
+			primary.rotation[1] -= 360.0f;
 		}
 		break;
 	case 'Y':
-		gimbal.activeAxis = AXIS_Y;
-		gimbal.rotation[1] -= 5.0f;
-		if (gimbal.rotation[1] <= 360.0f)
+		primary.activeAxis = AXIS_Y;
+		primary.rotation[1] -= 5.0f;
+		if (primary.rotation[1] <= 360.0f)
 		{
-			gimbal.rotation[1] += 360.0f;
+			primary.rotation[1] += 360.0f;
 		}
 		break;
 	case 'z':
-		gimbal.activeAxis = AXIS_Z;
-		gimbal.rotation[2] += 5.0f;
-		if (gimbal.rotation[2] >= 360.0f)
+		primary.activeAxis = AXIS_Z;
+		primary.rotation[2] += 5.0f;
+		if (primary.rotation[2] >= 360.0f)
 		{
-			gimbal.rotation[2] -= 360.0f;
+			primary.rotation[2] -= 360.0f;
 		}
 		break;
 	case 'Z':
-		gimbal.activeAxis = AXIS_Z;
-		gimbal.rotation[2] -= 5.0f;
-		if (gimbal.rotation[2] <= 360.0f)
+		primary.activeAxis = AXIS_Z;
+		primary.rotation[2] -= 5.0f;
+		if (primary.rotation[2] <= 360.0f)
 		{
-			gimbal.rotation[2] += 360.0f;
+			primary.rotation[2] += 360.0f;
 		}
 		break;
 	case '1':
-		gimbal.eulerMode = EULER_MODE_XYZ;
+		primary.eulerMode = EULER_MODE_XYZ;
 		break;
 	case '2':
-		gimbal.eulerMode = EULER_MODE_XZY;
+		primary.eulerMode = EULER_MODE_XZY;
 		break;
 	case '3':
-		gimbal.eulerMode = EULER_MODE_YXZ;
+		primary.eulerMode = EULER_MODE_YXZ;
 		break;
 	case '4':
-		gimbal.eulerMode = EULER_MODE_YZX;
+		primary.eulerMode = EULER_MODE_YZX;
 		break;
 	case '5':
-		gimbal.eulerMode = EULER_MODE_ZXY;
+		primary.eulerMode = EULER_MODE_ZXY;
 		break;
 	case '6':
-		gimbal.eulerMode = EULER_MODE_ZYX;
+		primary.eulerMode = EULER_MODE_ZYX;
 		break;
 	case 'r': // fall through
 	case 'R':
-		gimbal.rotation[0] = 0.0f;
-		gimbal.rotation[1] = 0.0f;
-		gimbal.rotation[2] = 0.0f;
+		primary.rotation[0] = 0.0f;
+		primary.rotation[1] = 0.0f;
+		primary.rotation[2] = 0.0f;
 		break;
 	case 'q': // fall through
 	case 'Q':
@@ -273,12 +274,13 @@ void keysUp(unsigned char key, int x, int y)
 	case 'Y':
 	case 'z': // fall through
 	case 'Z':
-		gimbal.activeAxis = AXIS_NONE;
+		primary.activeAxis = AXIS_NONE;
 		break;
 	}
 
 	glutPostRedisplay();
 }
+#endif
 
 int main(int argc, char** argv)
 {

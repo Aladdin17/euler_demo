@@ -26,20 +26,7 @@ bool rotateAxis(Gimbal* gimbal, Axis axis, char* label, float speed)
 {
 	bool active = false;
 	ImGui::PushID(label);
-	ImGui::Text(label);
-	if (ImGui::IsItemHovered())
-	{
-		if (ImGui::BeginTooltip())
-		{
-			const char* desc = "[0 , 360]";
-			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-			ImGui::Text(desc);
-			ImGui::PopTextWrapPos();
-			ImGui::EndTooltip();
-		}
-	}
-	ImGui::SameLine();
-	ImGui::PushItemWidth(100.0f);
+	ImGui::PushItemWidth(60.0f);
 	char id[4];
 	snprintf(id, sizeof(id), "##%c", *label);
 	float angle = gimbal->rotation[axis];
@@ -58,28 +45,19 @@ bool rotateAxis(Gimbal* gimbal, Axis axis, char* label, float speed)
 
 		gimbal->rotation[axis] = angle;
 	}
+	if (ImGui::IsItemHovered())
+	{
+		if (ImGui::BeginTooltip())
+		{
+			const char* desc = "[-180 , 180]";
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::Text(desc);
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+	}
 
 	ImGui::PopItemWidth();
-	ImGui::SameLine();
-	if (ImGui::Button("+") || ImGui::IsItemActive())
-	{
-		active = true;
-		gimbal->rotation[axis] += speed * ImGui::GetIO().DeltaTime;
-		if (gimbal->rotation[axis] >= 180.0f)
-		{
-			gimbal->rotation[axis] -= 360.0f;
-		}
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("-") || ImGui::IsItemActive())
-	{
-		active = true;
-		gimbal->rotation[axis] -= speed * ImGui::GetIO().DeltaTime;
-		if (gimbal->rotation[axis] < -180.0f)
-		{
-			gimbal->rotation[axis] += 360.0f;
-		}
-	}
 	ImGui::PopID();
 	return active;
 }
@@ -315,13 +293,17 @@ void gui_update(Gimbal* gimbal, Gimbal* target)
 	ImGui::Begin("Euler Rotation Demo", nullptr, ImGuiWindowFlags_NoResize);
 		static int selector = 0;
 		ImGui::SeparatorText("Display Options");
-		ImGui::Text("Gimbal:");
-		ImGui::SameLine(0.0f, 10.0f);
+		ImGui::Text("Primary:");
+		ImGui::SameLine();
+		ImGui::Dummy(ImVec2(45.0f - ImGui::CalcTextSize("Primary").x, 0));
+		ImGui::SameLine(0.0f, 0.0f);
 		ImGui::Checkbox("Axes##gimbal_axes", &gimbal->drawAxes);
 		ImGui::SameLine(0.0f, 10.0f);
 		ImGui::Checkbox("Gizmo##gimbal_gizmo", &gimbal->drawRotations);
 		ImGui::Text("Target:");
-		ImGui::SameLine(0.0f, 10.0f);
+		ImGui::SameLine();
+		ImGui::Dummy(ImVec2(45.0f - ImGui::CalcTextSize("Target").x, 0));
+		ImGui::SameLine(0.0f, 00.0f);
 		ImGui::Checkbox("Axes##target_axes", &target->drawAxes);
 		ImGui::SameLine(0.0f, 10.0f);
 		ImGui::Checkbox("Gizmo##target_gizmo", &target->drawRotations);
@@ -360,7 +342,7 @@ so the order of the rotations can change the final outcome.";
 		// bit of a hack to get the target to update the euler mode
 		target->eulerMode = gimbal->eulerMode;
 
-		static float rotationDegPerSecond = 10.0f;
+		static float rotationDegPerSecond = 6.0f;
 		enum Axis activeAxis = AXIS_NONE;
 		ImGui::SeparatorText("Rotations");
 			if (ImGui::IsItemHovered())
@@ -378,99 +360,108 @@ the direction of rotation based on a right-hand coordinate system.";
 			}
 			ImGui::EndTooltip();
 		}
-		ImGui::Text(" ");
+
+		// primary rotations
+		ImGui::Text("Primary");
 		ImGui::SameLine();
-		ImGui::PushItemWidth(100.0f);
-		if (ImGui::DragFloat("##rotSpeed", &rotationDegPerSecond, 1.0f, 60.0f))
+		ImGui::Dummy(ImVec2(45.0f - ImGui::CalcTextSize("Primary").x, 0));
+		ImGui::SameLine();
+		if (rotateAxis(gimbal, AXIS_X, "x_primary", rotationDegPerSecond))
 		{
-			if (rotationDegPerSecond < 0.0f)
+			activeAxis = AXIS_X;
+		}
+		ImGui::SameLine(0.0f, 3.0f);
+		if (rotateAxis(gimbal, AXIS_Y, "y_primary", rotationDegPerSecond))
+		{
+			activeAxis = AXIS_Y;
+		}
+		ImGui::SameLine(0.0f, 3.0f);
+		if (rotateAxis(gimbal, AXIS_Z, "z_primary", rotationDegPerSecond))
+		{
+			activeAxis = AXIS_Z;
+		}
+		gimbal->activeAxis = activeAxis;
+		activeAxis = AXIS_NONE;
+
+		// target rotations
+		ImGui::Text("Target");
+		ImGui::SameLine();
+		ImGui::Dummy(ImVec2(45.0f - ImGui::CalcTextSize("Target").x, 0));
+		ImGui::SameLine();
+		if (rotateAxis(target, AXIS_X, "x_target", rotationDegPerSecond))
+		{
+			activeAxis = AXIS_X;
+		}
+		ImGui::SameLine(0.0f, 3.0f);
+		if (rotateAxis(target, AXIS_Y, "y_target", rotationDegPerSecond))
+		{
+			activeAxis = AXIS_Y;
+		}
+		ImGui::SameLine(0.0f, 3.0f);
+		if (rotateAxis(target, AXIS_Z, "z_target", rotationDegPerSecond))
+		{
+			activeAxis = AXIS_Z;
+		}
+		target->activeAxis = activeAxis;
+		activeAxis = AXIS_NONE;
+
+		static bool animate = false;
+		ImGui::Spacing();
+		ImGui::SeparatorText("Animation Options");
+		ImGui::PushItemWidth(120.0f);
+		if (ImGui::DragFloat("Rotation Speed##rotSpeed", &rotationDegPerSecond, 0.1f, 0.0f, 30.0f, "%.1f (deg/s)"))
+		{
+			if (rotationDegPerSecond <= 0.0f)
 			{
 				rotationDegPerSecond = 0.0f;
 			}
-			else if (rotationDegPerSecond > 360.0f)
+			else if (rotationDegPerSecond >= 30.0f)
 			{
-				rotationDegPerSecond = 360.0f;
+				rotationDegPerSecond = 30.0f;
 			}
 		}
 		ImGui::PopItemWidth();
-		ImGui::SameLine();
-		ImGui::Text("deg/s");
 		if (ImGui::IsItemHovered())
 		{
 			if (ImGui::BeginTooltip())
 			{
-				const char* desc = "[0 , 60]";
+				const char* desc = "[0 , 30]";
 				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
 				ImGui::Text(desc);
 				ImGui::PopTextWrapPos();
 				ImGui::EndTooltip();
 			}
 		}
-		if (rotateAxis(gimbal, AXIS_X, "X", rotationDegPerSecond))
-		{
-			activeAxis = AXIS_X;
-		}
-		if (rotateAxis(gimbal, AXIS_Y, "Y", rotationDegPerSecond))
-		{
-			activeAxis = AXIS_Y;
-		}
-		if (rotateAxis(gimbal, AXIS_Z, "Z", rotationDegPerSecond))
-		{
-			activeAxis = AXIS_Z;
-		}
-		gimbal->activeAxis = activeAxis;
 
-		static bool animate = false;
 		ImGui::Spacing();
-		ImGui::SeparatorText("Animation");
-		if (ImGui::DragFloat3("Target", target->rotation, 1.0f, 0.0f, 0.0f, "%.1f") || ImGui::IsItemActive())
-		{
-			animate = false;
-			if (target->rotation[AXIS_X] >= 180.0f)
-			{
-				target->rotation[AXIS_X] -= 360.0f;
-			}
-			else if (target->rotation[AXIS_X] < -180.0f)
-			{
-				target->rotation[AXIS_X] += 360.0f;
-			}
+		static const animationFunc animations[] = { animateSequentially, animateConcurrently };
+		static int animationMode = 0;
+		ImGui::RadioButton("Sequential", &animationMode, 0);
+		ImGui::SameLine(0.0f, 10.0f);
+		ImGui::RadioButton("Concurrent", &animationMode, 1);
 
-			if (target->rotation[AXIS_Y] >= 180.0f)
-			{
-				target->rotation[AXIS_Y] -= 360.0f;
-			}
-			else if (target->rotation[AXIS_Y] < -180.0f)
-			{
-				target->rotation[AXIS_Y] += 360.0f;
-			}
+		ImGui::Spacing();
+		ImGui::SeparatorText("Animation Controls");
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(30, 5));
 
-			if (target->rotation[AXIS_Z] >= 180.0f)
-			{
-				target->rotation[AXIS_Z] -= 360.0f;
-			}
-			else if (target->rotation[AXIS_Z] < -180.0f)
-			{
-				target->rotation[AXIS_Z] += 360.0f;
-			}
-		}
+		float windowWidth = ImGui::GetWindowSize().x;
+		float buttonWidth = ImGui::CalcTextSize("Play").x + ImGui::GetStyle().FramePadding.x * 2.0f;
+		float centerSpacing = (windowWidth - buttonWidth * 2.0f) / 3.0f;
+		float centerPadding = 10.0f;
 
-		ImGui::Separator();
+		ImGui::SetCursorPosX(centerSpacing - (centerPadding / 2.0f));
 		if (ImGui::Button("Play"))
 		{
 			animate = true;
 		}
-		ImGui::SameLine(0.0f, 10.0f);
+		ImGui::SameLine();
+
+		ImGui::SetCursorPosX(centerSpacing + buttonWidth + (centerPadding * 2.0f));
 		if (ImGui::Button("Stop"))
 		{
 			animate = false;
 		}
-
-		static const animationFunc animations[] = { animateSequentially, animateConcurrently };
-		static int animationMode = 0;
-		ImGui::SeparatorText("Animation Mode");
-		ImGui::RadioButton("Sequential", &animationMode, 0);
-		ImGui::SameLine(0.0f, 10.0f);
-		ImGui::RadioButton("Concurrent", &animationMode, 1);
+		ImGui::PopStyleVar();
 
 		if ( animate )
 		{
@@ -479,7 +470,6 @@ the direction of rotation based on a right-hand coordinate system.";
 				animate = false;
 			}
 		}
-
 	ImGui::End();
 }
 
