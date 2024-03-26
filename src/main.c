@@ -282,6 +282,11 @@ void keysUp(unsigned char key, int x, int y)
 }
 #endif
 
+void idleFunc( void )
+{
+	glutPostRedisplay();
+}
+
 int main(int argc, char** argv)
 {
 	// GLUT initialization
@@ -298,7 +303,7 @@ int main(int argc, char** argv)
 
 	// GLUT callbacks
 	glutDisplayFunc(display);
-	glutIdleFunc(display);
+	glutIdleFunc(idleFunc);
 #ifndef BUILD_GUI_EXT
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keys);
