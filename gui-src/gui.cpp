@@ -93,34 +93,34 @@ bool animateSequentially(Gimbal* gimbal, float target[3], float rotationDegPerSe
 	switch ( gimbal->eulerMode )
 	{
 	case EULER_MODE_XYZ:
-		first = AXIS_X;
-		second = AXIS_Y;
-		third = AXIS_Z;
-		break;
-	case EULER_MODE_YXZ:
-		first = AXIS_Y;
-		second = AXIS_X;
-		third = AXIS_Z;
-		break;
-	case EULER_MODE_ZXY:
 		first = AXIS_Z;
-		second = AXIS_X;
-		third = AXIS_Y;
+		second = AXIS_Y;
+		third = AXIS_X;
 		break;
 	case EULER_MODE_XZY:
-		first = AXIS_X;
+		first = AXIS_Y;
 		second = AXIS_Z;
+		third = AXIS_X;
+		break;
+	case EULER_MODE_YXZ:
+		first = AXIS_Z;
+		second = AXIS_X;
 		third = AXIS_Y;
 		break;
 	case EULER_MODE_YZX:
-		first = AXIS_Y;
+		first = AXIS_X;
 		second = AXIS_Z;
-		third = AXIS_X;
+		third = AXIS_Y;
+		break;
+	case EULER_MODE_ZXY:
+		first = AXIS_Y;
+		second = AXIS_X;
+		third = AXIS_Z;
 		break;
 	case EULER_MODE_ZYX:
-		first = AXIS_Z;
+		first = AXIS_X;
 		second = AXIS_Y;
-		third = AXIS_X;
+		third = AXIS_Z;
 		break;
 	}
 
